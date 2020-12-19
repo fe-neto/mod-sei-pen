@@ -51,6 +51,7 @@ class ExpedirProcedimentoRN extends InfraRN {
     private $barraProgresso;
     private $objProcedimentoAndamentoRN;
     private $fnEventoEnvioMetadados;
+    private $cancelamentoAut;
 
     private $arrPenMimeTypes = array(
         "application/pdf",
@@ -2469,6 +2470,12 @@ class ExpedirProcedimentoRN extends InfraRN {
 
     }
 
+    public function cancelamentoAutomatico($dblIdProcedimento){
+
+        $this->cancelamentoAut=true;
+        $this->cancelarTramite($dblIdProcedimento);
+    }
+
     protected function cancelarTramiteInternoControlado(ProtocoloDTO $objDtoProtocolo)
     {
         //Obtem o id_rh que representa a unidade no barramento
@@ -2561,7 +2568,8 @@ class ExpedirProcedimentoRN extends InfraRN {
         $objTramiteBD = new TramiteBD($this->getObjInfraIBanco());
         $objTramiteDTO = $objTramiteBD->consultar($objDTOFiltro);
 
-        $objTramiteDTO->setNumIdAndamento(ProcessoEletronicoRN::$STA_SITUACAO_TRAMITE_CANCELADO);
+        $casoCancelamento=$this->cancelamentoAut!=true? ProcessoEletronicoRN::$STA_SITUACAO_TRAMITE_CANCELADO:ProcessoEletronicoRN::$STA_SITUACAO_TRAMITE_CANCELADO_AUTOMATICAMENTE;
+        $objTramiteDTO->setNumIdAndamento($casoCancelamento);
         $objTramiteDTO = $objTramiteBD->alterar($objTramiteDTO);
 
         //Cria o Objeto que registrar a Atividade de cancelamento
@@ -2576,10 +2584,17 @@ class ExpedirProcedimentoRN extends InfraRN {
         $objAtributoAndamentoDTOHora->setStrIdOrigem(null);
         $objAtributoAndamentoDTOHora->setStrValor(date('d/m/Y H:i'));
 
-        $objAtributoAndamentoDTOUser = new AtributoAndamentoDTO();
-        $objAtributoAndamentoDTOUser->setStrNome('USUARIO');
-        $objAtributoAndamentoDTOUser->setStrIdOrigem(null);
-        $objAtributoAndamentoDTOUser->setStrValor(SessaoSEI::getInstance()->getStrNomeUsuario());
+        if($this->cancelamentoAut!=true){
+            $objAtributoAndamentoDTOUser = new AtributoAndamentoDTO();
+            $objAtributoAndamentoDTOUser->setStrNome('USUARIO');
+            $objAtributoAndamentoDTOUser->setStrIdOrigem(null);
+            $objAtributoAndamentoDTOUser->setStrValor(SessaoSEI::getInstance()->getStrNomeUsuario());
+        }else{
+            $objAtributoAndamentoDTOUser = new AtributoAndamentoDTO();
+            $objAtributoAndamentoDTOUser->setStrNome('USUARIO');
+            $objAtributoAndamentoDTOUser->setStrIdOrigem(null);
+            $objAtributoAndamentoDTOUser->setStrValor("Cancelamento Automatico PEN (7 dias sem resposta)");
+        }
 
         $objAtividadeDTO->setArrObjAtributoAndamentoDTO(array($objAtributoAndamentoDTOHora, $objAtributoAndamentoDTOUser));
 

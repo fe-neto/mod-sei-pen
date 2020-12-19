@@ -206,6 +206,51 @@ class PENAgendamentoRN extends InfraRN
             // Faz uma requisição para o controlador do sistema
             PendenciasTramiteRN::inicializarMonitoramentoPendencias($numValorWorkers, $bolMonitoramentoAtivado, $bolExecutarEmSegundoPlano, $bolDebugAtivo);
 
+            //processos com tramitacao completa
+            $objRecibosTramiteDTO=new ReciboTramiteDTO();
+            $objRecibosTramiteDTO->retStrNumeroRegistro();
+            $objRecibosTramiteRN=new ReciboTramiteRN();
+            $resultRecibos=$objRecibosTramiteRN->listar($objRecibosTramiteDTO);
+            $arrResultRecibos = InfraArray::converterArrInfraDTO($resultRecibos,"NumeroRegistro");
+
+            
+            
+            //todos processos enviados a mais de 8 dias sem id de andamento PEN
+            $dataLimitePen=new DateTime("now -8 day");         
+            $objTramiteDTO=new TramiteDTO();
+            $objTramiteDTO->retStrNumeroRegistro();
+            $objTramiteDTO->retNumIdProcedimento();
+            $objTramiteDTO->setStrStaTipoTramite(ProcessoEletronicoRN::$STA_TIPO_TRAMITE_ENVIO);
+            $objTramiteDTO->setDthRegistro($dataLimitePen->format('d/m/Y'),InfraDTO::$OPER_MENOR);            
+            $objTramiteDTO->setNumIdAndamento(null,InfraDTO::$OPER_IGUAL);  
+            $objTramiteBD = new TramiteBD(BancoSEI::getInstance());
+            $resultTramites = $objTramiteBD->listar($objTramiteDTO);
+           
+            foreach($resultTramites as $resultTramiteDTO){
+
+                $numRegistro=$resultTramiteDTO->getStrNumeroRegistro();
+                     
+                if(in_array($numRegistro,$arrResultRecibos)==false){  
+                 
+
+                    $numProcedimento=$resultTramiteDTO->getNumIdProcedimento();
+                    $objProtocoloDTO=new ProtocoloDTO();
+                    $objProtocoloDTO->setStrStaEstado(4);
+                    $objProtocoloDTO->setDblIdProtocolo($numProcedimento);
+                    $objProtocoloDTO->retDblIdProtocolo();
+                    $objProtocoloDTO->retStrStaEstado();
+                    $objProtocoloBD = new ProtocoloBD($this->getObjInfraIBanco());
+                    $validaSeBloqueado=$objProtocoloBD->consultar($objProtocoloDTO);
+                                   
+                    //caso estiver bloqueado ainda, desbloqueia e coloca na atividade q foi pelo PEN
+                    if($validaSeBloqueado!=null){
+                        $expedirRN=new ExpedirProcedimentoRN();
+                        $expedirRN->cancelamentoAutomatico($numProcedimento);
+                    }
+                }
+            }
+
+
         }catch(Exception $e){
             InfraDebug::getInstance()->setBolLigado(false);
             InfraDebug::getInstance()->setBolDebugInfra(false);

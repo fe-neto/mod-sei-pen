@@ -74,4 +74,13 @@ class ReciboTramiteRN extends InfraRN {
         return $arrObjDTO;
     }
 
+    protected function listarConectado(ReciboTramiteDTO $objReciboTramiteDTO) {
+        try {
+            $objReciboTramiteBD = new ReciboTramiteRecebidoBD($this->getObjInfraIBanco());
+            return $objReciboTramiteBD->listar($objReciboTramiteDTO);            
+        }catch(Exception $e){
+            throw new InfraException('Erro listando Unidades.',$e);
+        }
+    }
+
 }
