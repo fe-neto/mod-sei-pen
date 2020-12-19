@@ -388,7 +388,13 @@ class PENIntegracao extends SeiIntegracao
 
             case 'pen_map_hipotese_legal_envio_listar';
             case 'pen_map_hipotese_legal_envio_excluir':
-                require_once dirname(__FILE__) . '/pen_map_hipotese_legal_envio_listar.php';
+
+                require_once dirname(__FILE__) . '/v2/autoloadPenV2.php';
+                $HipController=new HipoteseLegalController();
+
+                $_POST['acaoPen']=="excluir"? $HipController->excluir(): $HipController->listar();
+
+
             break;
 
             // Mapeamento de Hipóteses Legais de Recebimento
@@ -570,6 +576,13 @@ class PENIntegracao extends SeiIntegracao
         $arrConfig = ConfiguracaoSEI::getInstance()->getValor('SEI', 'Modulos');
         $strModulo = $arrConfig['PENIntegracao'];
         return "modulos/".$strModulo;
+    }
+
+    public static function getDiretoriov2()
+    {
+        $arrConfig = ConfiguracaoSEI::getInstance()->getValor('SEI', 'Modulos');
+        $strModulo = $arrConfig['PENIntegracao'];
+        return "modulos/".$strModulo . "/v2";
     }
 
     /**

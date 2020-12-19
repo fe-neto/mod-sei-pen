@@ -114,3 +114,6 @@ bash_org1:
 bash_org2:
 	docker-compose -f $(PEN_TEST_FUNC)/docker-compose.yml --env-file $(PEN_TEST_FUNC)/.env exec org2-http bash
 
+phpmd:
+	$(PEN_TEST_UNIT)/vendor/bin/phpmd ./src/rn/ html cleancode codesize controversial design naming unusedcode --reportfile /tmp/PHPMD/reportMd
+

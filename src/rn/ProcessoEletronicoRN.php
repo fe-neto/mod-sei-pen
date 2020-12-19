@@ -136,6 +136,12 @@ class ProcessoEletronicoRN extends InfraRN
         );
     }
 
+    //injecao de dependencia para Testes da API
+    public function setObjPenWsTest($objPenWs)
+    {
+            $this->objPenWs=$objPenWs;
+
+    }
 
     protected function inicializarObjInfraIBanco()
     {

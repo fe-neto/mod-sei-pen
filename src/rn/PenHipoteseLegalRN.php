@@ -7,20 +7,20 @@ require_once DIR_SEI_WEB.'/SEI.php';
  *
  * @author michael
  */
-class PenHipoteseLegalRN extends InfraRN 
+class PenHipoteseLegalRN extends InfraRN
 {
 
     protected function inicializarObjInfraIBanco(){
         return BancoSEI::getInstance();
     }
-    
+
     protected function listarConectado(PenHipoteseLegalDTO $objDTO)
-    {               
+    {
         try {
             //SessaoSEI::getInstance()->validarAuditarPermissao('email_sistema_excluir', __METHOD__, $arrObjEmailSistemaDTO);
-            $objBD = new GenericoBD($this->inicializarObjInfraIBanco());            
+            $objBD = new GenericoBD($this->inicializarObjInfraIBanco());
             return $objBD->listar($objDTO);
-        } 
+        }
         catch (Exception $e) {
             throw new InfraException('Erro excluindo E-mail do Sistema.', $e);
         }
